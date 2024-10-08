@@ -48,16 +48,14 @@ pipeline {
                     def dockerCmd = "sudo docker run -itd --name ${CONTAINER_NAME} -p 8083:80 ${DOCKER_IMAGE}"
 
                     sshagent(['sshkeypair']) {
-                        // Optional: Docker login on remote server if the image is private
+                        // Use the username and password in the SSH command
                         sh """
-                            ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} 'echo "$PASS" | docker login -u "$USER" --password-stdin'
+                            ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '
+                                echo "$PASS" | docker login -u "$USER" --password-stdin && \
+                                ${dockerrm} && \
+                                ${dockerCmd}
+                            '
                         """
-
-                        // Remove existing container
-                        sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerrm}'"
-
-                        // Run new container
-                        sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerCmd}'"
                     }
                 }
             }
