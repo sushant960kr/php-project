@@ -1,61 +1,52 @@
+
+
 pipeline {
     agent any
-    environment {
-        DOCKER_IMAGE = 'sushant960kr/sushantnewimage:v1'
-        CONTAINER_NAME = 'php-container'
-        SSH_OPTIONS = '-o StrictHostKeyChecking=no'
-        REMOTE_USER = 'ubuntu'
-        REMOTE_HOST = '172.31.9.161'
+
+    parameters {
+        choice(
+            name: 'executeJob',
+            choices: ['Yes', 'No'],
+            description: 'Do you want to execute the job?'
+        )
     }
+
     stages {
-        stage('Git Clone') {
+        stage('git cloned') {
             steps {
-                git url: 'https://github.com/sushant960kr/php-project.git', branch: 'master'
+                git url:'https://github.com/sushant960kr/php-project/', branch: "master"
             }
         }
-        stage('Build Docker Image') {
+        stage('Build docker image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE} ."
+                    sh 'docker build -t sushant960kr/newimage .'
                     sh 'docker images'
                 }
             }
         }
-        stage('Docker Login') {
+        stage('Docker login') {
+            when {
+                expression { params.executeJob == 'Yes' }
+            }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-pwd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    sh '''
-                        echo "$PASS" | docker login -u "$USER" --password-stdin
-                        if [ $? -ne 0 ]; then
-                            echo "Docker login failed"
-                            exit 1
-                        fi
-                    '''
-                }
-            }
-        }
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    sh "docker push ${DOCKER_IMAGE}"
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh 'docker push sushant960kr/newimage'
                 }
             }
         }
         stage('Deploy') {
+            when {
+                expression { params.executeJob == 'Yes' }
+            }
             steps {
                 script {
-                    def dockerrm = "sudo docker rm -f ${CONTAINER_NAME} || true"
-                    def dockerCmd = "sudo docker run -itd --name ${CONTAINER_NAME} -p 8083:80 ${DOCKER_IMAGE}"
-
+                    def dockerrm = 'sudo docker rm -f My-first-containe221 || true'
+                    def dockerCmd = 'sudo docker run -itd --name My-first-containe2211 -p 8083:80 sushant960kr/newimage'
                     sshagent(['sshkeypair']) {
-                        // Execute Docker login and commands on the remote server
-                        sh """
-                            ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '
-                                echo "$PASS" | docker login -u "$USER" --password-stdin && \
-                                ${dockerrm} && \
-                                ${dockerCmd}
-                            '
-                        """
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerrm}"
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerCmd}"
                     }
                 }
             }
