@@ -2,10 +2,10 @@ pipeline {
     agent any
     environment {
         DOCKER_IMAGE = 'sushant960kr/sushantnewimage:v1'
-        CONTAINER_NAME = 'php-container' // Example name, adjust as needed
-        SSH_OPTIONS = '-o StrictHostKeyChecking=no' // Example SSH options
-        REMOTE_USER = 'ubuntu' // Adjust as needed
-        REMOTE_HOST = 'remote.server.com' // Adjust as needed
+        CONTAINER_NAME = 'php-container'
+        SSH_OPTIONS = '-o StrictHostKeyChecking=no'
+        REMOTE_USER = 'ubuntu'
+        REMOTE_HOST = '172.31.9.161'
     }
     stages {
         stage('Git Clone') {
@@ -16,7 +16,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    sh "docker build -t ${DOCKER_IMAGE} ."
                     sh 'docker images'
                 }
             }
@@ -34,15 +34,30 @@ pipeline {
                 }
             }
         }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    sh "docker push ${DOCKER_IMAGE}"
+                }
+            }
+        }
         stage('Deploy') {
             steps {
-               script {
+                script {
                     def dockerrm = "sudo docker rm -f ${CONTAINER_NAME} || true"
                     def dockerCmd = "sudo docker run -itd --name ${CONTAINER_NAME} -p 8083:80 ${DOCKER_IMAGE}"
 
                     sshagent(['sshkeypair']) {
-                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerrm}"
-                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerCmd}"
+                        // Optional: Docker login on remote server if the image is private
+                        sh """
+                            ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} 'echo "$PASS" | docker login -u "$USER" --password-stdin'
+                        """
+
+                        // Remove existing container
+                        sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerrm}'"
+
+                        // Run new container
+                        sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerCmd}'"
                     }
                 }
             }
