@@ -6,16 +6,6 @@ This project is meant for absolute beginners. I've intentionally kept it the mos
 
 ## Concepts
 
-The project covers these concepts:
-
- * PHP variables
- * PHP arrays
- * PHP functions
- * Pretty links (/about) with fallback to query string (?page=about)
- * Basic example of separation of concerns (functionality, content, template)
-
-If you are a beginner and would like me to explain something in the code, or if you already know PHP and have some recommendation for the project, plese [create an issue](https://github.com/banago/simple-php-website/issues/new) or hit me up on Twitter [@banago](https://twitter.com/banago).
-
-## Lisence
-
-MIT
+Basically we have created a pipline of the app  and deploy it on a particular node which can be access through its public ip with port no.
+![Screenshot 2024-10-08 132839](https://github.com/user-attachments/assets/b5cf3f67-32f2-4afb-bc0c-94ea1e2dba29)
+![Screenshot 2024-10-08 132807](https://github.com/user-attachments/assets/0dbb4cc9-59b3-4eba-8350-e388393fa4ce)
