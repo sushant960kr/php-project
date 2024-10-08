@@ -1,24 +1,29 @@
 pipeline {
     agent any
-    stages{
-        stage('git cloned'){
-            steps{
-                git url:'https://github.com/sushant960kr/php-project.git/', branch: "master"
-              
+    environment {
+        DOCKER_IMAGE = 'sushant960kr/sushantnewimage:v1'
+        CONTAINER_NAME = 'php-container' // Example name, adjust as needed
+        SSH_OPTIONS = '-o StrictHostKeyChecking=no' // Example SSH options
+        REMOTE_USER = 'ubuntu' // Adjust as needed
+        REMOTE_HOST = 'remote.server.com' // Adjust as needed
+    }
+    stages {
+        stage('Git Clone') {
+            steps {
+                git url: 'https://github.com/sushant960kr/php-project.git', branch: 'master'
             }
         }
-        stage('Build docker image'){
-            steps{
-                script{
-                    sh 'docker build -t sushant960kr/sushantnewimage:v1 .'
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
                     sh 'docker images'
                 }
             }
         }
-          stage('Docker login') {
+        stage('Docker Login') {
             steps {
-                 withCredentials([usernamePassword(credentialsId: 'dockerhub-pwd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    // Using triple single quotes to prevent Groovy string interpolation for better security
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-pwd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh '''
                         echo "$PASS" | docker login -u "$USER" --password-stdin
                         if [ $? -ne 0 ]; then
@@ -29,19 +34,15 @@ pipeline {
                 }
             }
         }
-        
-     stage('Deploy') {
+        stage('Deploy') {
             steps {
                script {
-                    // Commands to remove existing container and run the new one
                     def dockerrm = "sudo docker rm -f ${CONTAINER_NAME} || true"
                     def dockerCmd = "sudo docker run -itd --name ${CONTAINER_NAME} -p 8083:80 ${DOCKER_IMAGE}"
 
                     sshagent(['sshkeypair']) {
-                        // Executing SSH commands to manage Docker containers on the remote server
                         sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerrm}'"
                         sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerCmd}'"
-                    
                     }
                 }
             }
