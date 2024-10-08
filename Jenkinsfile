@@ -17,9 +17,15 @@ pipeline {
         }
           stage('Docker login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-pwd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push sushant960kr/sushantnewimgage:v1'
+                 withCredentials([usernamePassword(credentialsId: 'dockerhub-pwd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    // Using triple single quotes to prevent Groovy string interpolation for better security
+                    sh '''
+                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                        if [ $? -ne 0 ]; then
+                            echo "Docker login failed"
+                            exit 1
+                        fi
+                    '''
                 }
             }
         }
