@@ -48,7 +48,7 @@ pipeline {
                     def dockerCmd = "sudo docker run -itd --name ${CONTAINER_NAME} -p 8083:80 ${DOCKER_IMAGE}"
 
                     sshagent(['sshkeypair']) {
-                        // Use the username and password in the SSH command
+                        // Execute Docker login and commands on the remote server
                         sh """
                             ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '
                                 echo "$PASS" | docker login -u "$USER" --password-stdin && \
