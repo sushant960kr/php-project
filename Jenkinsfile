@@ -41,8 +41,8 @@ pipeline {
                     def dockerCmd = "sudo docker run -itd --name ${CONTAINER_NAME} -p 8083:80 ${DOCKER_IMAGE}"
 
                     sshagent(['sshkeypair']) {
-                        sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerrm}'"
-                        sh "ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} '${dockerCmd}'"
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerrm}"
+                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerCmd}"
                     }
                 }
             }
