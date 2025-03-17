@@ -1,52 +1,39 @@
-
-
 pipeline {
     agent any
-
-    parameters {
-        choice(
-            name: 'executeJob',
-            choices: ['Yes', 'No'],
-            description: 'Do you want to execute the job?'
-        )
-    }
-
-    stages {
-        stage('git cloned') {
-            steps {
+    stages{
+        stage('git cloned'){
+            steps{
                 git url:'https://github.com/sushant960kr/php-project/', branch: "master"
+              
             }
         }
-        stage('Build docker image') {
-            steps {
-                script {
-                    sh 'docker build -t sushant960kr/newimage .'
+        stage('Build docker image'){
+            steps{
+                script{
+                    sh 'docker build -t sushant960kr/newimg:v1 .'
                     sh 'docker images'
                 }
             }
         }
-        stage('Docker login') {
-            when {
-                expression { params.executeJob == 'Yes' }
-            }
+          stage('Docker login') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-pwd', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh 'docker push sushant960kr/newimage'
+                    sh 'docker push sushant960kr/newimg:v1'
                 }
             }
         }
-        stage('Deploy') {
-            when {
-                expression { params.executeJob == 'Yes' }
-            }
+        
+     stage('Deploy') {
             steps {
-                script {
-                    def dockerrm = 'sudo docker rm -f My-first-containe221 || true'
-                    def dockerCmd = 'sudo docker run -itd --name My-first-containe2211 -p 8083:80 sushant960kr/newimage'
+               script {
+                   def dockerrm = 'sudo docker rm -f My-first-containe2211 || true'
+                    def dockerCmd = 'sudo docker run -itd --name My-first-containe2211 -p 8083:80 sushant960kr/newimg:v1'
                     sshagent(['sshkeypair']) {
-                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerrm}"
-                        sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.9.161 ${dockerCmd}"
+                        //chnage the private ip in below code
+                        // sh "docker run -itd --name My-first-containe2111 -p 8083:80 akshu20791/2febimg:v1"
+                         sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.11.134 ${dockerrm}"
+                         sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.11.134 ${dockerCmd}"
                     }
                 }
             }
