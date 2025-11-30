@@ -1,23 +1,54 @@
-Project Summary: Automated PHP Deployment Using Jenkins, Docker, and AWS EC2
-This project automates the deployment of a PHP application using Jenkins, Docker, and AWS EC2, ensuring seamless CI/CD (Continuous Integration & Continuous Deployment). It sets up an automated pipeline that pulls code from GitHub, builds a Docker image, pushes it to DockerHub, and deploys it on an AWS EC2 instance.
+# PHP Project – Automated Deployment Using Jenkins, Docker, DockerHub & AWS
 
-Key Components:
-GitHub Repository: Stores the PHP project and Jenkins pipeline configuration.
-Jenkins CI/CD Pipeline: Automates the build, test, and deployment process.
-Docker: Containerizes the PHP application for easy deployment.
-AWS EC2: Hosts the application on a scalable cloud server.
-SSH & Credentials Management: Securely connects Jenkins to AWS for deployment.
-Workflow:
-Fork & Clone the GitHub Repository
-Modify the Jenkinsfile to use your GitHub and DockerHub details
-Create AWS EC2 Instances: One as a Master (Jenkins + Docker) and another as a Node
-Install Jenkins & Docker on the Master instance using an automated script
-Configure Jenkins Credentials: Add DockerHub and SSH keys for authentication
-Trigger the Jenkins Pipeline:
-Pulls the latest code from GitHub
-Builds a Docker image and pushes it to DockerHub
-Deploys the image on the AWS Node instance
-Access the Running Application using the EC2 Public IP
+This project shows how a PHP application can be automatically deployed using a CI/CD pipeline.  
+The pipeline uses **Jenkins** for automation, **Docker** for containerization, **DockerHub** for image storage, and **AWS EC2 + ASG + Route 53** for hosting and scaling.
+
+---
+
+## 📌 Project Overview
+
+This repository contains a simple PHP web application.  
+The main goal of the project is to automate the entire deployment process so that:
+
+- Whenever code is updated on GitHub  
+- Jenkins automatically builds and deploys it  
+- The application becomes live on AWS EC2  
+- The website is accessible using a Route 53 domain  
+- The infrastructure auto-scales using ASG  
+
+This creates a production-ready CI/CD setup.
+
+---
+
+## 🔄 CI/CD Pipeline Workflow
+
+### **1. Fork the GitHub Repository**
+The original project was forked and uploaded to your GitHub account.
+
+### **2. Connect GitHub to Jenkins Using Poll SCM**
+- Jenkins monitors the GitHub repo  
+- Whenever a change is pushed, Jenkins automatically starts the pipeline  
+
+Example Poll SCM schedule:  
+
+### **✔ Route 53 (DNS)**
+- Route 53 Hosted Zone was created  
+- An **A-Record (Alias)** was mapped to the Application Load Balancer (ALB)  
+- This allows accessing the app using your domain name  
+
+### **✔ Auto Scaling Group (ASG)**
+- EC2 instances run inside an ASG  
+- ASG automatically increases or decreases the number of servers  
+- Each new EC2 instance pulls the Docker image and runs the PHP container  
+- ALB performs health checks and routes traffic
+
+This gives:
+- High availability  
+- Automatic failover  
+- Automatic scaling  
+
+
+  ---
 
 ![Screenshot 2025-03-18 134745](https://github.com/user-attachments/assets/2271bccc-fa5c-4abd-99d4-7aac470b0813)
 ![Screenshot 2025-03-18 134639](https://github.com/user-attachments/assets/952c791f-e589-4bec-a2ff-8030fbb44b07)
